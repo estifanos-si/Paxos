@@ -1,0 +1,13 @@
+{
+    "SID":0,
+    "GroupInfo":{
+        "GroupMembers":{
+            "0":"127.0.0.1:9467",
+            "1":"127.0.0.1:9468",
+            "2":"127.0.0.1:9469"
+        },
+        "CurrentLeader":0
+    },
+    "PollLeaderFreq":3,
+    "RegainLeadFeq":6
+}
