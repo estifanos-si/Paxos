@@ -7,12 +7,20 @@ import (
 	"net"
 	"net/rpc"
 	"os"
+	"strconv"
 )
 
 var cfg *Configuration
 
 func main() {
 	cfg = readConfig()
+	// cfg.CurrentLeader =
+	i, e := strconv.Atoi(os.Getenv("PAXOS_SID"))
+	if e != nil {
+		fmt.Printf("WARNING PAXOS_SID NOT SET")
+		i = cfg.CurrentLeader
+	}
+	cfg.CurrentLeader = i
 	data, _ := json.MarshalIndent(cfg, "", "   ")
 	fmt.Printf("Paxos Client Running with the following Configuration\n%s\n", data)
 	addr := startRPC()

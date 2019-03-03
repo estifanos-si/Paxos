@@ -1,7 +1,6 @@
 package Paxos
 
 import (
-	"fmt"
 	"math"
 	"sync"
 	"time"
@@ -46,7 +45,6 @@ func (le *LeaderElector) PollLeader() {
 			ok := call(le.CurrentLeader, "LeaderElector.Alive", new(interface{}), &stillLeader)
 			if ok && stillLeader {
 				alive = true
-				debug("[*] Info : LeaderElector : Leader  %s : Ok", le.CurrentLeader)
 				break
 			}
 		}
@@ -99,10 +97,6 @@ func (le *LeaderElector) adjustLeadership() {
 
 //Have suspected the leader to have failed, initialize leader election
 func (le *LeaderElector) initElection() {
-	le.Lock()
-	le.CurrentLeader = ""
-	le.LeaderSID = NO_LEADER
-	le.Unlock()
 	highestRank := false
 	//Poll servers with higher rank
 	for SID, serv := range le.ThisServer.GroupInfoPtr.GroupMembers {
@@ -129,7 +123,7 @@ func (le *LeaderElector) becomeLeader() {
 	for SID, serv := range le.ThisServer.GroupInfoPtr.GroupMembers {
 		ts := -1
 		if SID > le.ThisServer.SID {
-			if ok := call(serv, "LeaderElector.NotifyLeaderChange", &le.ThisServer.SID, &ts); !ok {
+			if ok := call(serv, "LeaderElector.NotifyLeaderChange", &le.ThisServer.SID, &ts); !ok || ts == -1 {
 				debug_err("Error : LeaderElector :  %s %s", "LeaderElector.NotifyLeaderChange Failed For Server :", serv)
 				continue
 			}
@@ -137,9 +131,7 @@ func (le *LeaderElector) becomeLeader() {
 			if ts > highestTS {
 				highestTS = ts
 			}
-			if ts != -1 {
-				acceptanceCount++
-			}
+			acceptanceCount++
 			lock.Unlock()
 		}
 	}
@@ -147,6 +139,10 @@ func (le *LeaderElector) becomeLeader() {
 		debug("[*] Info : LeaderElector :  This server is The Leader.")
 		return
 	}
+	le.Lock()
+	le.CurrentLeader = ""
+	le.LeaderSID = NO_LEADER
+	le.Unlock()
 	debug("[*] Info : LeaderElector :  Did not become the leader. Majority Connected To previous leader or Have Failed. ")
 }
 
@@ -188,8 +184,8 @@ func (le *LeaderElector) NotifyLeaderChange(SID *int, highestSeenTS *int) error 
 		ok := call(le.CurrentLeader, "LeaderElector.Alive", new(interface{}), &stillLeader)
 		if le.LeaderSID < *SID && ok && stillLeader {
 			//No need to change Leader, already connedted to the highest ranked leader
-			debug("[*] Info : LeaderElector : Rejecting Notification by %d : %s", le.LeaderSID, le.CurrentLeader)
 			*highestSeenTS = -1
+			le.Unlock()
 			return nil
 		}
 	}
@@ -202,7 +198,6 @@ func (le *LeaderElector) NotifyLeaderChange(SID *int, highestSeenTS *int) error 
 	le.LeaderSID = *SID
 	le.CurrentLeader = le.ThisServer.GroupInfoPtr.GroupMembers[*SID]
 	debug("[*] Info : LeaderElector :  Changed Leader TO %d -- %s", le.LeaderSID, le.CurrentLeader)
-	fmt.Printf("")
 	le.Unlock()
 	return nil
 }

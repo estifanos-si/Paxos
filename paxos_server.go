@@ -21,6 +21,15 @@ func main() {
 	if err != nil {
 		fmt.Printf("WARNING : PAXOS_SID Enviroment Variable Not found, using default SID in config file\n")
 	}
+	//Create A partition Between two highest ranked servers, For testing two concurrent leaders
+	// if cfg.SID == 1 {
+	// 	//to test two leaders with network partitioning
+	// 	cfg.GroupInfo.GroupMembers[0] = "192.168.1.87:8090"
+	// }
+	// if cfg.SID == 0 {
+	// 	cfg.GroupInfo.GroupMembers[1] = "192.168.1.87:8090"
+	// }
+
 	str, _ := json.MarshalIndent(cfg, "", "   ")
 
 	fmt.Printf("[*] Starting Paxos Server With The following Configuration\n%s\n", str)
