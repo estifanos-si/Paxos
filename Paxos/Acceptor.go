@@ -16,7 +16,7 @@ type Acceptor struct {
 func NewAcceptor(thisServer *ThisServer) (ac *Acceptor) {
 	ac = new(Acceptor)
 	ac.ThisServer = thisServer
-	ac.HighestSeenTS = TimeStamp{-1, -1}
+	ac.HighestSeenTS = TimeStamp{-1, 0}
 	ac.LatestAcceptdOps = TSedOp{}
 	ac.LatestAcceptdOps.Op.OpID.SID = -1
 	ac.LatestAcceptdOps.Op.OpID.OpSeq = -1

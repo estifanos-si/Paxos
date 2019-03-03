@@ -2,6 +2,7 @@ package Paxos
 
 import (
 	"fmt"
+	"math"
 	"sync"
 	"time"
 )
@@ -45,6 +46,7 @@ func (le *LeaderElector) PollLeader() {
 			ok := call(le.CurrentLeader, "LeaderElector.Alive", new(interface{}), &stillLeader)
 			if ok && stillLeader {
 				alive = true
+				debug("[*] Info : LeaderElector : Leader  %s : Ok", le.CurrentLeader)
 				break
 			}
 		}
@@ -72,7 +74,7 @@ func (le *LeaderElector) Alive(_ *interface{}, stillLeader *bool) error {
 }
 
 func (le *LeaderElector) Stabilize() {
-	<-time.After(le.PollLeaderFreq * 10 * time.Second)
+	<-time.After(30 * time.Second)
 	le.initElection()
 	le.Stabilize()
 }
@@ -120,31 +122,41 @@ func (le *LeaderElector) initElection() {
 
 /*If there is no other server with higher rank become leader*/
 func (le *LeaderElector) becomeLeader() {
-	done := make(chan int)
 	highestTS := -1
 	lock := new(sync.Mutex)
+	acceptanceCount := 1 //To accomodate for the failing leader
 	//Notify Other Servers,and also poll for the highest TS seen
 	for SID, serv := range le.ThisServer.GroupInfoPtr.GroupMembers {
 		ts := -1
 		if SID > le.ThisServer.SID {
 			if ok := call(serv, "LeaderElector.NotifyLeaderChange", &le.ThisServer.SID, &ts); !ok {
-				debug_err("Error : %s %s", "LeaderElector.NotifyLeaderChange Failed For Server :", serv)
+				debug_err("Error : LeaderElector :  %s %s", "LeaderElector.NotifyLeaderChange Failed For Server :", serv)
 				continue
 			}
 			lock.Lock()
 			if ts > highestTS {
 				highestTS = ts
 			}
+			if ts != -1 {
+				acceptanceCount++
+			}
 			lock.Unlock()
 		}
 	}
-	le.makeTSAdjustments(highestTS, &done)
-	debug("[*] Info : This server is The Leader.")
+	if le.makeTSAdjustments(highestTS, acceptanceCount) {
+		debug("[*] Info : LeaderElector :  This server is The Leader.")
+		return
+	}
+	debug("[*] Info : LeaderElector :  Did not become the leader. Majority Connected To previous leader or Have Failed. ")
 }
 
-func (le *LeaderElector) makeTSAdjustments(highestTS int, done *chan int) {
+func (le *LeaderElector) makeTSAdjustments(highestTS int, acceptanceCount int) bool {
 	//Make sure the leader has seen the highest TimeStamp, Needed to make progress
-
+	n := len(le.ThisServer.GroupInfoPtr.GroupMembers)
+	if acceptanceCount < int(math.Floor(float64(n/2)+1)) {
+		//Majority of the servers are connected to thier previous leaders
+		return false
+	}
 	le.ThisServer.tProposer.Lock()
 	if highestTS != -1 && highestTS >= le.ThisServer.tProposer.CurrentTS {
 		le.ThisServer.tProposer.CurrentTS = highestTS + 1
@@ -155,6 +167,7 @@ func (le *LeaderElector) makeTSAdjustments(highestTS int, done *chan int) {
 	le.CurrentLeader = le.ThisServer.ServerAddress
 	le.LeaderSID = le.ThisServer.SID
 	le.Unlock()
+	return true
 }
 
 /*This is an RPC method, called during leader election when
@@ -173,8 +186,9 @@ func (le *LeaderElector) NotifyLeaderChange(SID *int, highestSeenTS *int) error 
 	if le.LeaderSID != NO_LEADER {
 		stillLeader := false
 		ok := call(le.CurrentLeader, "LeaderElector.Alive", new(interface{}), &stillLeader)
-		if le.LeaderSID > *SID && ok && stillLeader {
+		if le.LeaderSID < *SID && ok && stillLeader {
 			//No need to change Leader, already connedted to the highest ranked leader
+			debug("[*] Info : LeaderElector : Rejecting Notification by %d : %s", le.LeaderSID, le.CurrentLeader)
 			*highestSeenTS = -1
 			return nil
 		}
@@ -187,7 +201,7 @@ func (le *LeaderElector) NotifyLeaderChange(SID *int, highestSeenTS *int) error 
 	le.Lock()
 	le.LeaderSID = *SID
 	le.CurrentLeader = le.ThisServer.GroupInfoPtr.GroupMembers[*SID]
-	debug("[*] Changed Leader TO %d -- %s", le.LeaderSID, le.CurrentLeader)
+	debug("[*] Info : LeaderElector :  Changed Leader TO %d -- %s", le.LeaderSID, le.CurrentLeader)
 	fmt.Printf("")
 	le.Unlock()
 	return nil

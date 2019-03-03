@@ -130,7 +130,7 @@ func (lr *Learner) catchUp(tsedOp TSedOp) {
 //Checks if count is majority
 func (lr *Learner) majority(count int) bool {
 	n := len(lr.ThisServer.GroupInfoPtr.GroupMembers)
-	if count >= int(math.Floor(float64((n+1)/2))) {
+	if count >= int(math.Floor(float64(n/2)+1)) {
 		return true
 	}
 	return false

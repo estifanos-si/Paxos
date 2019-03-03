@@ -1,6 +1,0 @@
-{"Op":{"OpID":{"OpSeq":1,"SID":0},"Value":1},"OpTs":{"SID":0,"SeqNum":1}}
-{"Op":{"OpID":{"OpSeq":2,"SID":0},"Value":1},"OpTs":{"SID":0,"SeqNum":2}}
-{"Op":{"OpID":{"OpSeq":3,"SID":0},"Value":2},"OpTs":{"SID":0,"SeqNum":3}}
-{"Op":{"OpID":{"OpSeq":4,"SID":0},"Value":3},"OpTs":{"SID":0,"SeqNum":4}}
-{"Op":{"OpID":{"OpSeq":5,"SID":1},"Value":3},"OpTs":{"SID":1,"SeqNum":5}}
-{"Op":{"OpID":{"OpSeq":6,"SID":0},"Value":8},"OpTs":{"SID":0,"SeqNum":6}}

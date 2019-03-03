@@ -94,7 +94,7 @@ func (pr *Proposer) sendPrepare() (Promise, int, string, bool) {
 	}
 
 	n := len(pr.ThisServer.GroupInfoPtr.GroupMembers)
-	if promiseCount >= int(math.Floor(float64((n+1)/2))) {
+	if promiseCount >= int(math.Floor(float64(n/2)+1)) {
 		//Got promises from majority of acceptors
 		debug("[*] Majority Of Acceptors Promised Prommise Count %v", promiseCount)
 		return highestPromise, highestOpSeq, servHighestOpSeq, true
