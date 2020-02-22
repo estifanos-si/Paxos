@@ -72,7 +72,7 @@ func (le *LeaderElector) Alive(_ *interface{}, stillLeader *bool) error {
 }
 
 func (le *LeaderElector) Stabilize() {
-	<-time.After(30 * time.Second)
+	<-time.After(10 * time.Second)
 	le.initElection()
 	le.Stabilize()
 }
