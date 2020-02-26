@@ -2,17 +2,11 @@
 
 ## Description
 
-    We have used the GO programing language to provide an implementaion of the paxos consensus algorithm. 
-    In this project we have implemented the core paxos algorithm, additionally we have implemented the multi-paxos
+    This is an implementaion of the paxos consensus algorithm using GO. 
+    Implemented in this project is the core paxos algorithm, along with multi-paxos
     algorithm, which is based on the paxos algorithm but has additional functionalities.
     The multi-paxos algorithm uses multiple instances of a single paxos algorithm to implement a replicated
     state machine (or achieve state machine replication).
-    We have followed the explanations given in the following articles:
-    "Paxos made simple - Leslie Lamport, "
-    "Paxos for System Builders: An Overview - Yair Amir and Jonathan Kirsch" and
-    "Paxos Explained from Scratch - Hein Meling and Leander Jehl"
-
-    Additionally the explanation given by our textbook - Distributed Systems - A.S. Tanenbaum & M.V. Steen was helpful.
 
 ## Launch
 
