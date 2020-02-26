@@ -1,10 +1,11 @@
-# Distributed Systems Programing Final Project  
+# Paxos Implementation  
 
 ## Description
 
-    This is an implementaion of the paxos consensus algorithm using GO. 
-    Implemented in this project is the core paxos algorithm, along with multi-paxos
-    algorithm, which is based on the paxos algorithm but has additional functionalities.
+    This is an implementaion of the paxos consensus algorithm using GO.  Implemented in this project is 
+    the core paxos algorithm, along with multi-paxos algorithm, which is based on the paxos algorithm but
+    has additional functionalities.
+    
     The multi-paxos algorithm uses multiple instances of a single paxos algorithm to implement a replicated
     state machine (or achieve state machine replication).
 
